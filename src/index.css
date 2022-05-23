@@ -3,3 +3,49 @@
 @tailwind utilities;
 
 
+@layer utilities {
+    .body{
+      overflow: hidden;
+    }
+    .scrollbar::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+  
+    .scrollbar::-webkit-scrollbar-track {
+      border-radius: 100vh;
+      background: rgb(228 228 231);
+    }
+  
+    .scrollbar::-webkit-scrollbar-thumb {
+      background: rgb(212 212 216);
+      border-radius: 100vh;
+      border: 3px solid rgb(228 228 231);
+    }
+  
+    .scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgb(228 228 231);
+    }
+
+
+    .the-card{
+      transform-style: preserve-3d;
+      transition: all 0.7s ease;
+      transition: display 0;
+
+    }
+    .the-front{
+      backface-visibility: hidden;
+      transition: visibility 0.7s, opacity 0.5s linear;
+    }
+    .the-back{
+      backface-visibility: hidden;
+      transform: rotateY(180deg);
+      transition: visibility 0.7s, opacity 0.5s linear;
+    }
+
+    /* .the-card:hover{
+      transform: rotateY(180deg);
+      cursor: pointer;
+    } */
+  }
