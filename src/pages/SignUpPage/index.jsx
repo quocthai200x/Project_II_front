@@ -1,12 +1,68 @@
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import InputWithLabel from '../../components/InputWithLabel'
+import { signUp } from '../../apis/auth';
+import getBase64 from '../../functions/base64EncoderFile';
+import { uploadImage } from '../../apis/other';
+import { useNavigate } from 'react-router-dom'
+
 
 function SignUpPage() {
+    const navigation = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("")
+    const [desc, setDesc] = useState("")
+    const [DOB, setDOB] = useState("1/1/2000")
     const [gender, setGender] = useState('male');
     const [interestedIn, setInterestedIn] = useState("male");
+    const [imgUrl, setImgUrl] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [errMessage, setErrorMessage] = useState("")
+    const avatarRef = useRef(null);
+
+    const onSignUp = async () => {
+        setIsLoading(true);
+        signUp({
+            birthdate:DOB,
+            name,
+            email,
+            password,
+            gender,
+            imgUrl,
+            interest: interestedIn,
+            desc
+        }).then(result => {
+            setIsLoading(false);
+            return result.data
+        }).then(result => {
+            if (result.success) {
+                let data = result.data
+                localStorage.setItem('user_token', data.accessToken)
+                navigation("/", { replace: true });
+            } else {
+                setErrorMessage(result.message);
+            }
+        })
+
+    }
+
+    const setAvatar = (e) => {
+        if (e.target.files.length) {
+            avatarRef.current.style.backgroundImage = 'url("https://cutewallpaper.org/21/loading-gif-transparent-background/Tag-For-Loading-Bar-Gif-Transparent-Loading-Gif-.gif")'
+            getBase64(e.target.files[0]).then((data) => {
+                uploadImage({ base64URL: data }).then(result => {
+                    return result.data
+                }).then(resultUpload => {
+                    if (resultUpload.success) {
+                        setImgUrl(resultUpload.data.link);
+                        avatarRef.current.style.backgroundImage = `url(${resultUpload.data.link})`
+                    } else {
+                        console.log(resultUpload);
+                    }
+                })
+            })
+        }
+    }
 
     return (
         <main className='flex top-16 relative flex-col items-center'>
@@ -36,11 +92,11 @@ function SignUpPage() {
 
                 </div>
                 <div className='flex flex-col mt-6 md:mt-0 mx-8'>
-                    <label htmlFor='avatar-input' className="border-2 transition duration-200 ease-in-out hover:border-sky-400 cursor-pointer w-40 h-40 rounded-full bg-cover bg-[url('https://img.myloview.com/posters/abstract-sign-avatar-men-icon-male-profile-white-symbol-on-gray-circle-background-vector-illustration-400-155569707.jpg')] "> </label>
-                    <input id='avatar-input' className='hidden' type='file' />
+                    <label ref={avatarRef} htmlFor='avatar-input' className="border-2 transition duration-200 ease-in-out hover:border-sky-400 cursor-pointer w-40 h-40 rounded-full bg-cover bg-[url('https://img.myloview.com/posters/abstract-sign-avatar-men-icon-male-profile-white-symbol-on-gray-circle-background-vector-illustration-400-155569707.jpg')] "> </label>
+                    <input onChange={setAvatar} id='avatar-input' className='hidden' type='file' />
                     <div className="mt-5 flex flex-col">
                         <label htmlFor='date-input' className='mb-4 cursor-pointer text-lg font-bold text-sky-400'>Date of Birth</label>
-                        <input id='date-input' type="date" className='cursor-pointer text-base border-b-2 rounded-md focus:border-sky-200 focus:outline-none transition duration-200 ease-in-out hover:ease-in' />
+                        <input onChange={(e)=>setDOB(e.target.value)} id='date-input' type="date" className='cursor-pointer text-base border-b-2 rounded-md focus:border-sky-200 focus:outline-none transition duration-200 ease-in-out hover:ease-in' />
                     </div>
 
 
@@ -58,11 +114,17 @@ function SignUpPage() {
                         </div>
                     </div>
 
-
                 </div>
             </form>
+            <button disabled={isLoading} onClick={onSignUp} className='rounded-md transition duration-200 ease-in-out cursor-pointer bg-sky-400 hover:bg-sky-600 px-4 py-2 font-bold text-white'>Register</button>
             <div className='flex flex-col items-center  mt-16 '>
-                <p className='text-md m-auto'>Already have an account?<a className='cursor-pointer hover:text-sky-600 text-sky-400 transition ease-in-out duration-200' href='/sign-in'>Sign in</a></p>
+                <p className='text-md m-auto'>Already have an account?
+                    <a aria-disabled={isLoading} className='cursor-pointer hover:text-sky-600 text-sky-400 transition ease-in-out duration-200' href='/sign-in'>
+                        Sign in
+                    </a></p>
+            </div>
+            <div className='flex justify-center'>
+                <p className='text-red-400 text-xl text-bold'>{errMessage}</p>
             </div>
         </main>
     )

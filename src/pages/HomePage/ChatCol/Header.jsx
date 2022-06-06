@@ -5,10 +5,10 @@ import React from 'react'
 function Header({ name, matchHistory, avatar, onExitChat }) {
     return (
         <div className="bg-zinc-100 flex pl-8 pt-2 pb-1 border-b-2 border-zinc-200 relative">
-            <img className='w-12 h-12 rounded-full' src='https://upload.wikimedia.org/wikipedia/commons/9/9a/Gull_portrait_ca_usa.jpg' />
+            <img className='w-12 h-12 rounded-full' src={avatar} />
             <div className="flex flex-col ml-4">
-                <span className='font-bold'>Name of something</span>
-                <span className='text-xs text-zinc-500' >Your match is on May 1st 2020</span>
+                <span className='font-bold'>{name}</span>
+                <span className='text-xs text-zinc-500' >Your match is {matchHistory}</span>
 
             </div>
             <svg onClick={(e)=>onExitChat(e)} className='cursor-pointer transition duration-200 ease-in-out hover:fill-sky-400 absolute top-5 right-6' width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
