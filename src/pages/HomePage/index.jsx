@@ -171,7 +171,9 @@ function HomePage() {
                                         </div> :
                                         <>
                                             <ChatInfoHeader matchHistory = {conversation.createdAt} name={conversation.namePartner} avatar = {conversation.imgUrlPartner} onExitChat={(e) => Swicth()} />
-                                            <Conservations conversation={conversation.messages} />
+                                         
+                                              <Conservations conversation={conversation.messages} />
+                                        
                                             <ChatForm onChatChange={(text) => setChatInput(text)} chatInput={chatInput} submitChat={submitChat} />
                                         </>
                                     }
