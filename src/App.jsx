@@ -6,7 +6,7 @@ import { useRecoilState } from 'recoil'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { checkUser } from './apis/auth';
 import { userState } from './recoil/user';
-
+import Test from './Test';
 const SignInPage = React.lazy(() => import('./pages/SignInPage'));
 const HomePage = React.lazy(() => import('./pages/HomePage'));
 const SignUpPage = React.lazy(() => import("./pages/SignUpPage"));
@@ -46,14 +46,12 @@ function App() {
           console.log("clear")
           axios.defaults.headers.token = "";
           localStorage.clear();
+          navigate("/sign-in")
         }
         setLoading(false);
 
-      }).catch((err)=>{
-        console.log('vao catch');
-        console.log(err);
       })
-    } else {        
+    } else {
       navigate("/sign-in", { replace: true })
       setLoading(false);
     }
@@ -116,6 +114,11 @@ function App() {
             <Route exact path='/sign-up' element={
               <Suspense fallback={<LoadingPage />}>
                 <SignUpPage />
+              </Suspense>
+            } />
+            <Route exact path='/test' element={
+              <Suspense fallback={<LoadingPage />}>
+                <Test />
               </Suspense>
             } />
             <Route
