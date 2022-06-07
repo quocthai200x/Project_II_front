@@ -11,6 +11,7 @@ function Test() {
     const Row = ({ index, style }) => (
         <div style={style}>Row {index}</div>
     );
+    console.log(rowHeights);
     return (
         <List
             height={150}

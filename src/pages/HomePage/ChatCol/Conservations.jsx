@@ -73,35 +73,40 @@ let data = [
 function Conservations({ conversation }) {
 
     const getItemSize = (index) => {
-        console.log(index);
+       
         return data[index]
     }
-    
+
 
     const Row = ({ index, style }) => {
-               if (data[index].owner == "6294df26ef467d56646e3328") {
-                    return (
-                        <div key={'comment-' + index} style={style} className='mx-4 my-1 flex justify-end '>
-                            <div className="max-w-[45%]">
+        if (data[index].owner == "6294df26ef467d56646e3328") {
+            return (
+                <div className="" style={style}>
+                    <div key={'comment-' + index} className='mx-4 my-1 flex justify-end '>
+                        <div className="max-w-[45%]">
                             <p className='break-all p-2 rounded-xl border-2 border-sky-400 bg-sky-400 text-zinc-50'>
                                 {data[index].content}
                             </p>
-                                </div>
-
                         </div>
-                    )
-                } else {
-                    return (
-                        <div key={'comment-' + index} style={style}  className='mx-4 my-1 flex justify-start '>
-                             <div className="max-w-[45%]">
+
+                    </div>
+                </div>
+            )
+        } else {
+            return (
+                <div className="" style={style}>
+
+                    <div key={'comment-' + index} style={style} className='mx-4 my-1 flex justify-start '>
+                        <div className="max-w-[45%]">
 
                             <p className='break-all p-2 rounded-xl border-2 border-sky-300'>
                                 {data[index].content}
                             </p>
-                             </div>
                         </div>
-                    )
-                }
+                    </div>
+                </div>
+            )
+        }
 
     }
     console.log("fsdfhsjdf");
@@ -138,7 +143,8 @@ function Conservations({ conversation }) {
             itemCount={data.length}
             itemSize={getItemSize}
             width={300}
-            // className='
+            className='flex flex-col-reverse'
+
         >
             {Row}
         </List>
