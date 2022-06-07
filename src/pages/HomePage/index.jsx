@@ -12,7 +12,7 @@ import SwipeCard from './TinderSwipe/SwipeCard';
 import ProfileCol from './ProfileCol';
 import { getMatches } from '../../apis/user';
 import { getListChat, getMessage } from '../../apis/chat';
-import axios from '../../axios';
+
 
 
 
@@ -171,7 +171,9 @@ function HomePage() {
                                         </div> :
                                         <>
                                             <ChatInfoHeader matchHistory = {conversation.createdAt} name={conversation.namePartner} avatar = {conversation.imgUrlPartner} onExitChat={(e) => Swicth()} />
-                                            <Conservations conversation={conversation.messages} />
+                                         
+                                              <Conservations conversation={conversation.messages} />
+                                        
                                             <ChatForm onChatChange={(text) => setChatInput(text)} chatInput={chatInput} submitChat={submitChat} />
                                         </>
                                     }

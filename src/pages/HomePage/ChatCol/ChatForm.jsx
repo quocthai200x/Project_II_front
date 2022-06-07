@@ -8,7 +8,7 @@ function ChatForm({ onChatChange, chatInput, onClickEmoji, submitChat }) {
     // const renderEmojiList = 
     //     
     return (
-        <form className="absolute bottom-2 h-16 w-full  flex items-center p-4  border-t-2 border-zinc-100">
+        <form className=" bottom-2 h-16 w-full  flex items-center p-4  border-t-2 border-zinc-100">
             <input 
                 onFocus={()=>setIsEmojiListVisible(false)}
                 onKeyDown={(ele) => {
