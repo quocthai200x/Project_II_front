@@ -1,12 +1,12 @@
-import React, { useCallback, useMemo, useRef } from "react";
-import { VariableSizeList as List } from "react-window";
-
+import React, { Fragment, useCallback, useMemo, useRef } from "react";
+import { VariableSizeList as List } from "react-window-reversed";
+import InfiniteLoader from "react-window-infinite-loader";
+import AutoSizer from "react-virtualized-auto-sizer";
 import { useWindowResize } from "../../../hooks/useWindowResize";
 import { useRecoilState } from 'recoil'
 import { userState } from '../../../recoil/user.jsx'
 
-
-const height = window.innerHeight;
+// const height = window.innerHeight;
 
 const Row = ({ data, index, setSize, windowWidth }) => {
 
@@ -19,72 +19,108 @@ const Row = ({ data, index, setSize, windowWidth }) => {
 
   if (data[index].owner == user._id) {
     return (
-      <li ref={rowRef} key={'comment-' + index} className='mx-4 my-1 flex justify-end '>
-        <div className="max-w-[45%]">
-          <p className='break-all p-2 rounded-xl border-2 border-sky-400 bg-sky-400 text-zinc-50'>
-            {data[index].content}
-          </p>
-        </div>
+      <div ref={rowRef} className="pb-1">
+        <div key={'comment-' + index} className='mx-2 flex justify-end '>
+          <div className="max-w-[45%]">
+            <p className='break-all p-2 rounded-xl border-2 border-sky-400 bg-sky-400 text-zinc-50'>
+              {data[index].content}
+            </p>
+          </div>
 
-      </li>
+        </div>
+      </div>
+
     )
   } else {
     return (
-      <li ref={rowRef} key={'comment-' + index} className='mx-4 my-1 flex justify-start '>
-        <div className="max-w-[45%]">
+      <div ref={rowRef} className="pb-1">
+        <div key={'comment-' + index} className='mx-2 flex justify-start '>
+          <div className="max-w-[45%]">
 
-          <p className='break-all p-2 rounded-xl border-2 border-sky-300'>
-            {data[index].content}
-          </p>
+            <p className='break-all p-2 rounded-xl border-2 border-sky-300'>
+              {data[index].content}
+            </p>
+          </div>
         </div>
-      </li>
+      </div>
     )
   }
 }
 
-const NoConversationRenderer = () =>{
-  return (
-    <div className="flex">
-        <p>Now is your time to have some words for this partner</p>
-    </div>
-  )
-}
+const mergeRefs = (...refs) => (incomingRef) =>
+  refs.forEach((ref) => {
+    if (typeof ref === "function") {
+      ref(incomingRef);
+    } else {
+      // eslint-disable-next-line no-param-reassign
+      ref.current = incomingRef;
+    }
+  });
 
-export default function Conversation({conversation}) {
 
+
+
+
+export default function Conversation({ conversation, loadMore }) {
   const listRef = useRef();
- 
+
   const sizeMap = useRef({});
   const setSize = useCallback((index, size) => {
+
     sizeMap.current = { ...sizeMap.current, [index]: size };
     listRef.current.resetAfterIndex(index);
   }, []);
   const getSize = index => sizeMap.current[index] || 50;
   const [windowWidth] = useWindowResize();
 
+
+
   return (
-    conversation?
-    <List
-      
-      ref={listRef}
-      height={height}
-      width="100%"
-      itemCount={conversation.length}
-      itemSize={getSize}
-      itemData={conversation}
-      className='flex flex-col-reverse'
-    >
-      {({ data, index, style }) => (
-        <div style={style}>
-          <Row
-            data={data}
-            index={index}
-            setSize={setSize}
-            windowWidth={windowWidth}
-          />
-        </div>
-      )}
-    </List>:<NoConversationRenderer />
+      <div className="w-full h-screen">
+        <AutoSizer>
+          {({ height, width }) => (
+            <InfiniteLoader
+              isItemLoaded={(index) => index < conversation.length}
+              itemCount={conversation.length + 1}
+              loadMoreItems={loadMore}
+              threshold={2}
+             
+            >
+              {({ onItemsRendered, ref }) => {
+                return (
+                  <List
+                    onItemsRendered={onItemsRendered}
+                    reversed={true}
+
+                    ref={mergeRefs(ref, listRef)}
+
+                    height={height}
+                    width={width}
+                    itemCount={conversation.length}
+                    itemSize={getSize}
+                    itemData={conversation}
+                  >
+                    {({ data, index, style }) => {
+
+
+                      return (
+                        <div style={style}>
+                          <Row
+                            data={data}
+                            index={index}
+                            setSize={setSize}
+                            windowWidth={windowWidth}
+                          />
+                        </div>
+                      )
+                    }}
+                  </List>
+                )
+              }}
+            </InfiniteLoader>
+          )}
+        </AutoSizer>
+      </div>
   );
 }
 

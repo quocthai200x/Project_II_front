@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react'
-
+import CatWrite from "../../assets/gif/cat_write.gif"
 
 import HeaderNameProject from './MatchChatCol/Header';
 import Tabs from './MatchChatCol/Tabs';
@@ -12,26 +12,30 @@ import SwipeCard from './TinderSwipe/SwipeCard';
 import ProfileCol from './ProfileCol';
 import { getMatches } from '../../apis/user';
 import { getListChat, getMessage } from '../../apis/chat';
+import { userState } from '../../recoil/user';
+import { useRecoilState } from 'recoil';
 
 
 
 
 
 function HomePage() {
-    
+    const [user, setUser] = useRecoilState(userState);
+
     const [listChat, setListChat] = useState([])
     const [listMatch, setListMatch] = useState([])
     const [isChat, setIsChat] = useState(true);
     const [personChatWith, setPersonChatWith] = useState({})
     const [chatInput, setChatInput] = useState('');
-    const [conversation, setConversation] = useState({messages:[]});
+    const [conversation, setConversation] = useState({ messages: [] });
     const [isChatSide, setIsChatSide] = useState(true);
     const theCard = useRef(null);
     const theFrontCard = useRef(null);
     const theBackCard = useRef(null);
+    const [chatPageIndex, setChatPageIndex] = useState(1);
 
     const [pageIndexMatch, setPageIndexMatch] = useState(1);
-
+    const [chatLoadMore, setChatLoadMore] = useState(true);
 
     useEffect(() => {
         // settingConversation();
@@ -40,88 +44,87 @@ function HomePage() {
 
     }, [])
 
-    const setUpListMatch = () =>{
+    const setUpListMatch = () => {
         getMatches(pageIndexMatch, 999).then(res => {
             return res.data
-        }).then(res =>{
-            if(res.success){
+        }).then(res => {
+            if (res.success) {
                 let data = res.data;
                 setListMatch(data);
                 setPageIndexMatch(pageIndexMatch + 1)
             }
-            
+
         })
     }
-    
-    
-    const setUpListChat = () =>{
+
+
+    const setUpListChat = () => {
         getListChat().then(res => {
             return res.data
-        }).then(res =>{
-            if(res.success){
+        }).then(res => {
+            if (res.success) {
                 let data = res.data;
                 setListChat(data);
             }
-            
+
         })
     }
-    
-    
+
+
     const Swicth = () => {
         setIsChatSide(!isChatSide);
     }
-    
+
     useEffect(() => {
         if (isChatSide) {
             theCard.current.style.transform = "rotateY(0deg)"
             theFrontCard.current.style.visibility = "visible";
             theBackCard.current.style.visibility = 'hidden';
-            
-            
-            
+
+
+
         } else {
             theCard.current.style.transform = "rotateY(180deg)"
             theFrontCard.current.style.visibility = "hidden";
             theBackCard.current.style.visibility = 'visible';
-            
-            
+
+
         }
     }, [isChatSide])
-    
+
     const handleClickChat = (item) => {
-       
-        getMessage(item._id, 1, 999).then(res =>{
+        setChatLoadMore(true);
+        getMessage(item._id, 1, 10).then(res => {
             return res.data
-        }).then(res=>{
-            let data= res.data;
-            // console.log(data);
-            setConversation(prev =>({
+        }).then(res => {
+            let data = res.data;
+            setConversation(prev => ({
                 ...prev,
                 ...data,
                 "namePartner": item.users[0].info.name,
                 "imgUrlPartner": item.users[0].info.imgUrl
             }))
+            setChatPageIndex(2);
         })
         setIsChatSide(true)
     }
     const handleClickMatch = (item) => {
         setIsChatSide(true);
-        
+
     }
 
     const submitChat = () => {
         if (chatInput) {
             let ele = {
-                type: "text",
-                _id: "626b94860d48da2fb402ccce",
-                owner: "1",
+                owner: user._id,
                 content: chatInput,
-                createdAt: "2022-04-29T07:32:22.545Z"
+                createdAt: new Date(),
             }
 
-            setConversation(
-                prev => [ele, ...prev]
-            )
+            setConversation(prev => ({
+                ...prev,
+                messages: [ele, ...prev.messages],
+            }))
             setChatInput("")
         }
 
@@ -139,16 +142,47 @@ function HomePage() {
         )
     }, [listMatch])
 
-    const RenderNothingList = ({text}) =>{
-        return(
+    const RenderNothingList = ({ text }) => {
+        return (
             <div className='text-center text-bold text-xl text-black'>{text}</div>
         )
+    };
+
+    const loadMore = () => {
+        if (chatLoadMore) {
+            getMessage(conversation._id, chatPageIndex, 10).then(res => {
+                return res.data
+            }).then(res => {
+                if (res.success && res.data.messages.length != 0) {
+                    let data = res.data.messages;
+
+                    setConversation(prev => ({
+                        ...prev,
+                        messages: [...prev.messages, ...data],
+                    }))
+                    setChatPageIndex(chatPageIndex + 1)
+                }
+                if (res.data.messages.length == 0) {
+                    setChatLoadMore(false);
+                }
+            })
+        }
+
     }
 
+    const NoConversationRenderer = () => {
+        return (
+            <div className="w-full h-screen flex flex-col justify-center items-center">
+                <img src={CatWrite} width='200px' alt="the-cat-is-writing some text" />
+                <p className='font-thin '>Now is your time to have some words for this partner</p>
+            </div>
+        )
+    }
+    const renderChatOrMatchTab = isChat ?
+        listChat.length != 0 ? MemoChatList : <RenderNothingList text={'You have match first'} /> : listMatch.length != 0 ? MemoMatchList : <RenderNothingList text={'You have to swipe card'} />
 
-    const renderChatOrMatchTab = isChat ?  
-        listChat.length!=0?MemoChatList:<RenderNothingList text={'You have match first'}/> : listMatch.length!=0?MemoMatchList:<RenderNothingList text={'You have to swipe card'}/>
-    
+
+
     return (
         <main className='h-screen grid grid-cols-12 bg-zinc-200'>
             <div className="flex flex-col bg-zinc-100 col-span-3 overflow-hidden  z-[99]">
@@ -162,7 +196,7 @@ function HomePage() {
                         <div ref={theCard} id='the-card' className='bg-zinc-200 the-card h-screen w-full absolute top-0' >
                             <div id='the-front' ref={theFrontCard} className='bg-zinc-100 the-front h-screen w-full aboslute  top-0'>
                                 <div className="flex flex-col h-screen relative">
-                                    {!conversation._id?
+                                    {!conversation._id ?
                                         <div className=' flex flex-col justify-center items-center h-screen  bg-zinc-200'>
                                             <img src="https://i.pinimg.com/originals/60/fb/1f/60fb1f9ec36ef7e8972d27661c15e2a9.gif" alt="Hiển thị không có gì" />
                                             <p className='text-sm text-center'>Don't want to be like this cat</p>
@@ -170,10 +204,11 @@ function HomePage() {
                                             <button className='px-4 py-2 mt-8 bg-sky-400 text-zinc-100 rounded-xl hover:bg-sky-600 hover:scale-110 transition duration-200 ease-in-out' onClick={() => Swicth()}>Let's go</button>
                                         </div> :
                                         <>
-                                            <ChatInfoHeader matchHistory = {conversation.createdAt} name={conversation.namePartner} avatar = {conversation.imgUrlPartner} onExitChat={(e) => Swicth()} />
-                                         
-                                              <Conservations conversation={conversation.messages} />
-                                        
+                                            <ChatInfoHeader matchHistory={conversation.createdAt} name={conversation.namePartner} avatar={conversation.imgUrlPartner} onExitChat={(e) => Swicth()} />
+                                            {
+                                                conversation.messages.length ? <Conservations loadMore={loadMore} conversation={conversation.messages} />
+                                                    : <NoConversationRenderer />
+                                            }
                                             <ChatForm onChatChange={(text) => setChatInput(text)} chatInput={chatInput} submitChat={submitChat} />
                                         </>
                                     }

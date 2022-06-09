@@ -35,7 +35,7 @@ function ChatForm({ onChatChange, chatInput, onClickEmoji, submitChat }) {
 
                 {/* {renderEmojiList} */}
             </div>
-            <button onClick={(e) => { e.preventDefault(); submitChat() }} className='leading-4 ml-4 hover:bg-zinc-200 p-1 rounded-md'>💘</button>
+            <button onClick={(e) => { e.preventDefault(); setIsEmojiListVisible(false);submitChat() }} className='leading-4 ml-4 hover:bg-zinc-200 p-1 rounded-md'>💘</button>
         </form>
     )
 }
