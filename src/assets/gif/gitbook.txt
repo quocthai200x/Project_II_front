@@ -1,0 +1,24 @@
+
+
+Trang chủ:
+- Hướng dẫn hiện phần tin tức ưu tiên
+- Hướng dẫn đổi menu phần footer, dẫn link nnao, link social media
+
+Tin tức: Hướng dẫn đổi tin tức, sắp xếp tin tức
+
+Lĩnh vực hoạt động:
+- Hướng dẫn thay đổi nội dung, thêm tab, thêm đầu mục và chỉnh sửa nội dung bên trong mỗi đầu mục
+
+Dự án: 
+- Hướng dẫn thêm tab đổi post hiển thị
+
+Chi tiết dự án
+- Tạo 1 trang mẫu, hướng dẫn clone trang dự án mẫu đó và thay đổi nội dung bên trong trang mẫu,
+- Thêm phàn slider, gallery của dự án
+
+Tuyển dụng
+- Hướng dẫn chỉnh sửa phần tuyển dụng
+ + Viết tin tuyển dụng
+ + Hiện lên
+
+Check thông tin nhận form

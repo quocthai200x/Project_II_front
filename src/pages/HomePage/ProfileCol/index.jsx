@@ -155,7 +155,7 @@ function ProfileCol() {
                     </div>
                 </div>
                 <div className="mt-4">
-                    <textarea value={user.info.desc} onChange={(e)=>setDesc(e.target.value)}  className='outline-none p-2 w-full h-32'>
+                    <textarea value={user.info.desc} onChange={(e)=>setDesc(e.target.value)}  className='outline-none p-2 w-full h-24'>
                     </textarea>
                 </div>
                 <div className="mt-4 flex justify-center items-center">

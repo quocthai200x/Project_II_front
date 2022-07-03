@@ -6,16 +6,24 @@ import { useRecoilState } from 'recoil'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { checkUser } from './apis/auth';
 import { userState } from './recoil/user';
+// import VueSocketIO from 'vue-3-socket.io'
+// import SocketIO from 'socket.io-client'
+
+import { socketState } from './recoil/socket';
+
 import Test from './Test';
 const SignInPage = React.lazy(() => import('./pages/SignInPage'));
 const HomePage = React.lazy(() => import('./pages/HomePage'));
 const SignUpPage = React.lazy(() => import("./pages/SignUpPage"));
 
+
 function App() {
+
   const navigate = useNavigate();
   const [auth, setAuth] = useState(false)
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useRecoilState(userState)
+  const [socket, setSocket] = useRecoilState(socketState)
 
   const setUserInfo = (data) => {
     let info = data.info
@@ -30,7 +38,9 @@ function App() {
   }
 
   const checkTokenFromStorage = () => {
+
     console.log('Check token');
+
     let AUTH_TOKEN = localStorage.getItem("user_token");
     if (AUTH_TOKEN) {
       axios.defaults.headers.token = AUTH_TOKEN;
@@ -52,36 +62,19 @@ function App() {
 
       })
     } else {
-      navigate("/sign-in", { replace: true })
-      setLoading(false);
+      let pathNameCanAccessWithoutToken = ['/sign-up', '/sign-in']
+      if (!pathNameCanAccessWithoutToken.includes(window.location.pathname)) {
+        navigate("/sign-in", { replace: true })
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
     }
   }
-
-  // useEffect(() => {
-  //   if (!auth && !loading) {
-  //     let pathname = window.location.pathname;
-  //     let isInArrrayPathname = false
-  //     let pathnameNotRequire = ['/sign-in', '/sign-up']
-
-  //     pathnameNotRequire.forEach((item) => {
-  //       if (pathname == item ) {
-  //         isInArrrayPathname = true;
-  //         return null
-  //       }
-  //     })
-  //     if (!isInArrrayPathname) {
-  //       console.log("quay lại sign in")
-  //       navigate("/sign-in", { replace: true })
-  //     }
-  //   }
-  // }, [auth, loading, navigate])
-
-
 
   useEffect(() => {
     checkTokenFromStorage();
   }, [])
-
 
   const LoadingPage = () => {
     return (
@@ -121,6 +114,8 @@ function App() {
                 <Test />
               </Suspense>
             } />
+
+
             <Route
               path="*"
               element={

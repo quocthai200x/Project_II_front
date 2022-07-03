@@ -1,16 +1,18 @@
 import React, { useState } from 'react'
-
 import { ListEmojis } from '../../../constant/iconList'
 
-function ChatForm({ onChatChange, chatInput, onClickEmoji, submitChat }) {
+
+function ChatForm({ onChatChange, chatInput, onClickEmoji, submitChat, onReadMessage }) {
     const [isEmojiListVisible, setIsEmojiListVisible] = useState(false);
 
-    // const renderEmojiList = 
-    //     
+ 
     return (
         <form className=" bottom-2 h-16 w-full  flex items-center p-4  border-t-2 border-zinc-100">
             <input 
-                onFocus={()=>setIsEmojiListVisible(false)}
+                onFocus={()=>{
+                    setIsEmojiListVisible(false)
+                    onReadMessage()
+                }}
                 onKeyDown={(ele) => {
                 if(ele.key==="Enter"){
                     submitChat()

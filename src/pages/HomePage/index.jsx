@@ -11,23 +11,34 @@ import Conservations from './ChatCol/Conservations';
 import SwipeCard from './TinderSwipe/SwipeCard';
 import ProfileCol from './ProfileCol';
 import { getMatches } from '../../apis/user';
-import { getListChat, getMessage } from '../../apis/chat';
+import { getListChat, getMessage, sendMessage, readMessage } from '../../apis/chat';
 import { userState } from '../../recoil/user';
 import { useRecoilState } from 'recoil';
-
+import LogoutIcon from '../../assets/svg/logout';
+import axios from '../../axios';
+import { useNavigate } from 'react-router-dom'
+import { socketState } from '../../recoil/socket';
 
 
 
 
 function HomePage() {
     const [user, setUser] = useRecoilState(userState);
-
+    const navigate = useNavigate();
+    const [socket, setSocket] = useRecoilState(socketState);
     const [listChat, setListChat] = useState([])
     const [listMatch, setListMatch] = useState([])
-    const [isChat, setIsChat] = useState(true);
-    const [personChatWith, setPersonChatWith] = useState({})
-    const [chatInput, setChatInput] = useState('');
     const [conversation, setConversation] = useState({ messages: [] });
+    const listChatRef = useRef();
+    const conversationRef = useRef();
+    listChatRef.current = listChat;
+    conversationRef.current = conversation;
+
+
+    const [isChat, setIsChat] = useState(true);
+
+    const [chatInput, setChatInput] = useState('');
+
     const [isChatSide, setIsChatSide] = useState(true);
     const theCard = useRef(null);
     const theFrontCard = useRef(null);
@@ -41,15 +52,42 @@ function HomePage() {
         // settingConversation();
         setUpListMatch();
         setUpListChat();
-
+        setUpSocketCallFirst();
     }, [])
 
+    const logOut = (e) => {
+        e.preventDefault();
+        setUser({
+            info: {
+                gender: "",
+                interest: "",
+                name: "",
+                birthdate: "",
+                desc: "",
+                imgUrl: ""
+            },
+            match: [],
+            like: [],
+            unlike: [],
+            _id: "",
+            email: "",
+        })
+        localStorage.setItem("user_token", '')
+        axios.defaults.headers.token = '';
+        navigate('/sign-in')
+    }
+
+    const setUpSocketCallFirst = () => {
+        socket.emit('reply');
+        socket.emit('online', user._id, user.match)
+    }
     const setUpListMatch = () => {
         getMatches(pageIndexMatch, 999).then(res => {
             return res.data
         }).then(res => {
             if (res.success) {
                 let data = res.data;
+                
                 setListMatch(data);
                 setPageIndexMatch(pageIndexMatch + 1)
             }
@@ -64,6 +102,9 @@ function HomePage() {
         }).then(res => {
             if (res.success) {
                 let data = res.data;
+                data.sort(function (a, b) {
+                    return new Date(b.lastModify) - new Date(a.lastModify);
+                });
                 setListChat(data);
             }
 
@@ -93,21 +134,45 @@ function HomePage() {
     }, [isChatSide])
 
     const handleClickChat = (item) => {
-        setChatLoadMore(true);
-        getMessage(item._id, 1, 10).then(res => {
-            return res.data
-        }).then(res => {
-            let data = res.data;
-            setConversation(prev => ({
-                ...prev,
-                ...data,
-                "namePartner": item.users[0].info.name,
-                "imgUrlPartner": item.users[0].info.imgUrl
-            }))
-            setChatPageIndex(2);
-        })
-        setIsChatSide(true)
+        if (item._id != conversationRef.current._id) {
+            setChatLoadMore(true);
+            getMessage(item._id, 1, 10).then(res => {
+                return res.data
+            }).then(res => {
+                let data = res.data;
+                setConversation(prev => ({
+                    ...prev,
+                    ...data,
+                    "namePartner": item.users[0].info.name,
+                    "imgUrlPartner": item.users[0].info.imgUrl
+                }))
+                setChatPageIndex(2);
+            })
+            setIsChatSide(true)
+            readMessageCall(item._id);
+        }
+
     }
+
+    const readMessageCall = (chatId) => {
+
+        readMessage(chatId).then(res => {
+            return res.data
+        }).then(data => {
+            if (data.success) {
+                let newArray = listChat.map(item => {
+                    if (item._id == chatId) {
+                        item.usersRead = data.data.usersRead
+                    }
+                    return item;
+                });
+                setListChat(newArray)
+            }
+        }).catch(err => {
+            console.log(err);
+        })
+    }
+
     const handleClickMatch = (item) => {
         setIsChatSide(true);
 
@@ -120,14 +185,78 @@ function HomePage() {
                 content: chatInput,
                 createdAt: new Date(),
             }
-
+            let chatId = conversation._id;
+            let matchId = conversation.users[0] == user._id ? conversation.users[1] : conversation.users[0];
+            // lưu db tin nhắn
+            sendMessage(chatId, matchId, ele.content).then(res => {
+                return res.data
+            }).then(data => {
+                if (data.success) {
+                    return null;
+                }
+                // gửi lại 1 lần nếu lỗi
+                sendMessage(chatId, matchId, ele.content);
+            })
+            // gửi bằng socket cho nhanh để hiện nhưng k lưu db
+            socket.emit('send-message', ele, chatId, matchId)
+            refreshPositionChatListSend(chatId, ele);
             setConversation(prev => ({
                 ...prev,
                 messages: [ele, ...prev.messages],
             }))
             setChatInput("")
         }
+    }
 
+    useEffect(() => {
+        socket.on("matches-online", (data) => {
+            // TODO: làm thanh hiện trạng thái hoạt động
+
+        });
+        socket.on('receive-message', (newMess, chatId, matchId) => {
+            refreshPositionChatListReceived(chatId, newMess);
+            if (chatId == conversationRef.current._id) {
+                setConversation(prev => ({
+                    ...prev,
+                    messages: [newMess, ...prev.messages],
+                }))
+            }
+
+
+        })
+    }, [socket])
+
+    const refreshPositionChatListSend = (chatId, mess) => {
+        let cloneListChat = listChatRef.current;
+        let itemToTop = null;
+        let newArray = cloneListChat.filter((itemChat) => {
+            if (itemChat._id == chatId) {
+                itemToTop = itemChat;
+            }
+            return itemChat._id != chatId;
+        })
+        itemToTop.messages.unshift(mess);
+        newArray.unshift(itemToTop);
+        setListChat(newArray);
+    }
+
+    const refreshPositionChatListReceived = (chatId, mess) => {
+        let cloneListChat = listChatRef.current;
+        let itemToTop = null;
+        let newArray = cloneListChat.filter((itemChat) => {
+            if (itemChat._id == chatId) {
+                itemToTop = itemChat;
+            }
+            return itemChat._id != chatId;
+        })
+        itemToTop.usersRead.forEach(eachUser =>{
+            if(user._id == eachUser.userId){
+                eachUser.read = false;
+            }
+        })
+        itemToTop.messages.unshift(mess);
+        newArray.unshift(itemToTop);
+        setListChat(newArray);
     }
 
     const MemoChatList = useMemo(() => {
@@ -185,10 +314,18 @@ function HomePage() {
 
     return (
         <main className='h-screen grid grid-cols-12 bg-zinc-200'>
-            <div className="flex flex-col bg-zinc-100 col-span-3 overflow-hidden  z-[99]">
-                <HeaderNameProject />
-                <Tabs isChat={isChat} onSwitchTab={(bool) => setIsChat(bool)} />
-                {renderChatOrMatchTab}
+            <div className='col-span-3 bg-zinc-100  relative h-screen'>
+                <div className="flex flex-col z-[99]  overflow-hidden">
+                    <HeaderNameProject />
+                    <Tabs isChat={isChat} onSwitchTab={(bool) => setIsChat(bool)} />
+                    {renderChatOrMatchTab}
+                </div>
+                <div className="absolute bottom-0 w-full bg-zinc-200 h-16 flex items-center">
+                    <button className="w-4 h-4 m-4" onClick={(e) => logOut(e)}>
+                        <LogoutIcon classname="cursor-pointer transition duration-200 ease-in-out hover:fill-sky-400" />
+                    </button>
+
+                </div>
             </div>
             <div className='grid grid-cols-12 col-span-9'>
                 <div className=" col-span-7 h-screen border-2 border-zinc-300 ">
@@ -209,7 +346,7 @@ function HomePage() {
                                                 conversation.messages.length ? <Conservations loadMore={loadMore} conversation={conversation.messages} />
                                                     : <NoConversationRenderer />
                                             }
-                                            <ChatForm onChatChange={(text) => setChatInput(text)} chatInput={chatInput} submitChat={submitChat} />
+                                            <ChatForm onChatChange={(text) => setChatInput(text)} chatInput={chatInput} submitChat={submitChat} onReadMessage={(e) => readMessageCall(conversation._id)} />
                                         </>
                                     }
 

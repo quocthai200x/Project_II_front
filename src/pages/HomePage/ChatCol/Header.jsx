@@ -1,5 +1,5 @@
 import React from 'react'
-
+import moment from 'moment'
 
 
 function Header({ name, matchHistory, avatar, onExitChat }) {
@@ -8,7 +8,7 @@ function Header({ name, matchHistory, avatar, onExitChat }) {
             <img className='w-12 h-12 rounded-full' src={avatar} />
             <div className="flex flex-col ml-4">
                 <span className='font-bold'>{name}</span>
-                <span className='text-xs text-zinc-500' >Your match is {matchHistory}</span>
+                <span className='text-xs text-zinc-500' >Your match is {moment(matchHistory).format('ll')}</span>
 
             </div>
             <svg onClick={(e)=>onExitChat(e)} className='cursor-pointer transition duration-200 ease-in-out hover:fill-sky-400 absolute top-5 right-6' width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
