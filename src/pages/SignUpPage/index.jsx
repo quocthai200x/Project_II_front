@@ -93,7 +93,7 @@ function SignUpPage() {
 
                 </div>
                 <div className='flex flex-col mt-6 md:mt-0 mx-8'>
-                    <label ref={avatarRef} htmlFor='avatar-input' className="border-2 transition duration-200 ease-in-out hover:border-sky-400 cursor-pointer w-40 h-40 rounded-full bg-cover bg-[url('https://img.myloview.com/posters/abstract-sign-avatar-men-icon-male-profile-white-symbol-on-gray-circle-background-vector-illustration-400-155569707.jpg')] "> </label>
+                    <label ref={avatarRef} htmlFor='avatar-input' className="bg-center border-2 transition duration-200 ease-in-out hover:border-sky-400 cursor-pointer w-40 h-40 rounded-full bg-cover bg-[url('https://img.myloview.com/posters/abstract-sign-avatar-men-icon-male-profile-white-symbol-on-gray-circle-background-vector-illustration-400-155569707.jpg')] "> </label>
                     <input onChange={setAvatar} id='avatar-input' className='hidden' type='file' />
                     <div className="mt-5 flex flex-col">
                         <label htmlFor='date-input' className='mb-4 cursor-pointer text-lg font-bold text-sky-400'>Date of Birth</label>
