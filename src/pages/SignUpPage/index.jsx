@@ -23,7 +23,7 @@ function SignUpPage() {
     const onSignUp = async () => {
         setIsLoading(true);
         signUp({
-            birthdate:DOB,
+            birthdate: DOB,
             name,
             email,
             password,
@@ -35,6 +35,7 @@ function SignUpPage() {
             setIsLoading(false);
             return result.data
         }).then(result => {
+            console.log(result)
             if (result.success) {
                 let data = result.data
                 localStorage.setItem('user_token', data.accessToken)
@@ -96,7 +97,7 @@ function SignUpPage() {
                     <input onChange={setAvatar} id='avatar-input' className='hidden' type='file' />
                     <div className="mt-5 flex flex-col">
                         <label htmlFor='date-input' className='mb-4 cursor-pointer text-lg font-bold text-sky-400'>Date of Birth</label>
-                        <input onChange={(e)=>setDOB(e.target.value)} id='date-input' type="date" className='cursor-pointer text-base border-b-2 rounded-md focus:border-sky-200 focus:outline-none transition duration-200 ease-in-out hover:ease-in' />
+                        <input onChange={(e) => setDOB(e.target.value)} id='date-input' type="date" className='cursor-pointer text-base border-b-2 rounded-md focus:border-sky-200 focus:outline-none transition duration-200 ease-in-out hover:ease-in' />
                     </div>
 
 

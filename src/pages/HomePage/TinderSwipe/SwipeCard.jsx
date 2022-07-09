@@ -1,15 +1,17 @@
 
 import React, { useState, useRef, useMemo, useEffect } from 'react'
 import TinderCard from 'react-tinder-card'
+import { useRecoilState } from 'recoil';
 import { getCards, likeAndUnlike } from '../../../apis/user';
 import ImageSwipe from '../../../assets/img/anh_mau_swipe_card.jpg'
 import DenyFaceSVG from '../../../assets/svg/deny.jsx';
 import LoveFaceSVG from "../../../assets/svg/love.jsx"
+import { socketState } from '../../../recoil/socket';
+import { userState } from '../../../recoil/user';
 
 
 
-
-function SwipeCard() {
+function SwipeCard(onNotiSwipe) {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [db, setDB] = useState([]);
     const [lastDirection, setLastDirection] = useState()
@@ -18,6 +20,10 @@ function SwipeCard() {
     const [canSwipe, setCanSwipe] = useState(false);
     const [childRefs, setChildRefs] = useState([]);
     const [pageIndex, setPageIndex] = useState(1);
+    const [socket, setSocket] = useRecoilState(socketState);
+    const [user, setUser] = useRecoilState(userState);
+    const userRef = useRef();
+    userRef.current = user;
     useEffect(() => {
         getMoreMatchOption()
 
@@ -82,7 +88,11 @@ function SwipeCard() {
             return res.data
         }).then(res =>{
             if(res.success){
-                alert(status.toUpperCase())
+                if(res.data.match){
+                    socket.emit('match', {info:userRef.current.info, _id: userRef.current._id}, res.data.list[0])
+                }else{
+                    alert(status.toUpperCase())
+                }
             }
             else{
                 alert(res.message);
