@@ -1,10 +1,19 @@
 import React from 'react'
 import moment from 'moment'
+import Modal from '../../../components/Modal'
+import { useRecoilState } from 'recoil';
+import { socketState } from '../../../recoil/socket';
+import Conversation from './Conservations';
+import { userState } from '../../../recoil/user';
+import { useRecoilValue } from "recoil";
+
 
 
 function Header({ name, matchHistory, avatar, onExitChat,conversation,user }) {
-    // let conversation = conversation;
-    console.log(conversation._id);
+    const [socket, setSocket] = useRecoilState(socketState);
+    const currentUser = useRecoilValue(userState);
+
+    console.log(conversation);
     return (
         <div className="bg-zinc-100 flex pl-8 pt-2 pb-1 border-b-2 border-zinc-200 relative">
             <img className='w-12 h-12 rounded-full' src={avatar} />
@@ -14,7 +23,14 @@ function Header({ name, matchHistory, avatar, onExitChat,conversation,user }) {
 
             </div>
             {/* <div style={{float:"left"}}> */}
-            <button onClick={()=>{window.open("http://"+window.location.host + "/call/" + conversation._id+"?u="+user._id).focus()}} id='call' className='bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded' style={{marginLeft:"auto"}}>Call</button>
+            <button onClick={
+                ()=>{
+                let matchId = conversation.users[0] == user._id ? conversation.users[1] : conversation.users[0];
+                let callerName = currentUser.info.name
+                socket.emit("calling",user._id,conversation._id, matchId,callerName) 
+                window.open("http://"+window.location.host + "/call/" + conversation._id+"?u="+user._id).focus();
+                
+                }} id='call' className='bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded' style={{marginLeft:"auto"}}>Call</button>
                 {/* <h2 style={{float:"left"}}>sss</h2> */}
             {/* </div> */}
             <svg style={{margin:".7rem"}} onClick={(e)=>onExitChat(e)} className='cursor-pointer transition duration-200 ease-in-out hover:fill-sky-400  top-5 right-6' width="24px" height="24px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

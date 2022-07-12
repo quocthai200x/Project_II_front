@@ -41,6 +41,15 @@ function HomePage() {
     const [listChat, setListChat] = useState([])
     const [listMatch, setListMatch] = useState([])
     const [conversation, setConversation] = useState({ messages: [] });
+    const [modalData,setmodalData] = useState({
+        title:"You have a match",
+        reject: "Cancel",
+        accept:"Contact now",
+        callID:null,
+        from: null,
+        to:null,
+        caller:null
+    })
     const listChatRef = useRef();
     const conversationRef = useRef();
     listChatRef.current = listChat;
@@ -239,6 +248,20 @@ function HomePage() {
         socket.on('receive-match', (matchUser) =>{
             setLastMatchUser(matchUser);
         })
+        socket.on("calling",(mess,matchId,uid,callerName) => { 
+                console.log(mess,matchId,uid,callerName);
+                setIsModalShow(true)
+                setmodalData({
+                    title: callerName + " is Calling",
+                    reject: "Cancel",
+                    accept:"Enter Call Now",
+                    callId:matchId,
+                    from:mess,
+                    to:uid,
+                    caller:callerName
+                })
+
+         })
     }, [socket])
 
     useEffect(()=>{
@@ -358,7 +381,7 @@ function HomePage() {
     return (
         <>
             <main className='h-screen grid grid-cols-12 bg-zinc-200 '>
-                {isModalShow?<Modal info={lastMatchUser} toggleModal={(value)=>handleModal(value)}/>:null}
+                {isModalShow?<Modal  info={lastMatchUser} toggleModal={(value)=>handleModal(value)} modalData={modalData}/>:null}
 
                 <div className='col-span-3 bg-zinc-100  relative h-screen'>
                     <div className="flex flex-col z-[99]  overflow-hidden">

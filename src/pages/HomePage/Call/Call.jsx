@@ -4,6 +4,9 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { useState, useRef } from "react";
 import { useEffect } from "react";
+import { userState } from '../../../recoil/user';
+import { useRecoilValue } from "recoil";
+
 import {
   collection,
   addDoc,
@@ -58,11 +61,11 @@ const setup = async ()=>{
       remoteStream.addTrack(track);
     });
   };
-
+  console.log(1);
   webcamVideo.srcObject = localStream;
   remoteVideo.srcObject = remoteStream;
 }
-setup()
+// setup()
 const call = async () => {
   let user = window.location.search;
   const callId = window.location.pathname.slice(6,window.location.pathname.length);
@@ -96,6 +99,7 @@ const call = async () => {
       pc.setRemoteDescription(answerDescription);
     }
   });
+  console.log(2);
   onSnapshot(answerCandidates, (snapshot) => {
     snapshot.docChanges().forEach((change) => {
       if (change.type === "added") {
@@ -119,7 +123,7 @@ const answerCall = async () => {
   };
 
   const callData = (await getDoc(callDoc)).data();
-
+  console.log(callData);
   const offerDescription = callData.offer;
   await pc.setRemoteDescription(new RTCSessionDescription(offerDescription));
 
@@ -146,14 +150,26 @@ const answerCall = async () => {
   });
 };
 const Call = (props) => {
+  const currentUser = useRecoilValue(userState);
+  // console.log(currentUser);
   id = usePathname().slice(6, usePathname().length);
   let user = window.location.search;
+  let someoneiscalling = false
+  // nnếu uid ở param khác với hiên tại tức là from 
   console.log(user.slice(3, user.length));
   // console.log(id);
   const webcamVideo = useRef(null);
   const remoteVideo = useRef(null);
 
   useEffect(() => {
+    setup().then(()=>{
+      if(currentUser._id == user.slice(3, user.length)){
+        call()
+      }else{
+        answerCall()
+      }
+    })
+
     // setup(id, user.slice(3, user.length));
   }, []);
 
@@ -163,7 +179,7 @@ const Call = (props) => {
         {/* <h2>1. Start your Webcam</h2> */}
         <div className="videos">
           <span>
-            <h3>You</h3>
+            {/* <h3>You</h3> */}
             <video
               ref={webcamVideo}
               id="webcamVideo"
@@ -172,14 +188,14 @@ const Call = (props) => {
             ></video>
           </span>
           <span>
-            <h3>Your friend</h3>
+            {/* <h3>Your friend</h3> */}
             <video ref={remoteVideo} id="remoteVideo" autoPlay playsInline></video>
           </span>
         </div>
 
         {/* <button className='bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded' id="webcamButton">Start webcam</button> */}
         {/* <h2>Answer Call</h2> */}
-        <button
+        <button style={{display:'none'}}
           className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
           id="callButton"
           onClick={answerCall}
@@ -208,7 +224,7 @@ const Call = (props) => {
         focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
           id="callInput"
         />
-        <button
+        <button style={{display:'none'}}
           className="bg-transparent hover:bg-blue-500 text-blue-700 font-semibold hover:text-white py-2 px-4 border border-blue-500 hover:border-transparent rounded"
           id="answerButton"
           onClick={call}
