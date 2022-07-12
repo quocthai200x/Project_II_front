@@ -10,10 +10,12 @@ import { userState } from './recoil/user';
 // import SocketIO from 'socket.io-client'
 
 import { socketState } from './recoil/socket';
+// import Call from './pages/HomePage/Call/Call'
 
 import Test from './Test';
 const SignInPage = React.lazy(() => import('./pages/SignInPage'));
 const HomePage = React.lazy(() => import('./pages/HomePage'));
+const Call = React.lazy(() => import('./pages/HomePage/Call/Call'));
 const SignUpPage = React.lazy(() => import("./pages/SignUpPage"));
 
 
@@ -114,7 +116,12 @@ function App() {
                 <Test />
               </Suspense>
             } />
-
+            <Route exact path='call/:id' element={
+              <Suspense fallback={<LoadingPage />}>
+                <Call/>
+              </Suspense>
+              // <Call/>
+            } />
 
             <Route
               path="*"
