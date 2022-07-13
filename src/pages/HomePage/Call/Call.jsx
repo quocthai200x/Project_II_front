@@ -48,7 +48,7 @@ let id = null;
 const setup = async ()=>{
   localStream = await navigator.mediaDevices.getUserMedia({
     video: true,
-    audio: false,
+    audio: true,
   });
   remoteStream = new MediaStream();
   // Push tracks from local stream to peer connection
